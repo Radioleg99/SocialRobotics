@@ -30,7 +30,7 @@ This project demonstrates a **controller → thinking stream → final answer** 
    ```bash
    python3 main.py
    ```
-   Ask any question and you’ll see the terminal print thinking cues, the confidence transition, and the final answer with the mapped “nonverbal” label.
+   Ask any question and you’ll see Furhat spend ~10 seconds speaking short thinking cues (with gestures) before handing over to the final answer stream whenever the controller requests visible thinking.
 
 ## Key Configuration Points
 
@@ -38,10 +38,10 @@ This project demonstrates a **controller → thinking stream → final answer** 
 | --- | --- | --- |
 | `OPENAI_SETTINGS` | `main.py:24` | Runtime values are overridden by `config.json` / `api_key.txt`. |
 | `CONTROLLER_SYSTEM_PROMPT` | `main.py:43` | Forces the controller model to emit clean JSON decisions. |
-| `THINKING_SYSTEM_PROMPT` | `main.py:63` | Constrains the visible-thinking stream to short, natural phrases. |
-| `REASONING_SYSTEM_PROMPT` | `main.py:57` | Keeps final answers short, friendly, and rationale-free. |
-| `CONFIDENCE_BEHAVIORS` | `main.py:34` | Maps confidence tiers to speech prefixes and gesture placeholders. |
-| `MAX_THINKING_CUES` | `main.py:40` | Upper bound on visible-thinking phrases (to avoid endless dots). |
+| `THINKING_SYSTEM_PROMPT` | `plan/prompts.py` | Constrains the visible-thinking stream to short, natural phrases. |
+| `REASONING_SYSTEM_PROMPT` | `plan/prompts.py` | Keeps final answers short, friendly, and rationale-free. |
+| `CONFIDENCE_BEHAVIORS` | `plan/behavior_generator.py` | Maps confidence tiers to speech prefixes and gesture placeholders. |
+| `MAX_THINKING_CUES` | `plan/orchestrator.py` | Upper bound on visible-thinking phrases (prevents endless “...” tokens). |
 
 ## Customization Ideas
 

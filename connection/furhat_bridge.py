@@ -116,6 +116,10 @@ class FurhatBridge:
         """机器人开始说话时的事件处理 - 根据说话内容生成动作"""
         if not self.shutting_down:
             robot_text = event.get("text", "")
+            if self.behavior_generator.is_in_thinking_mode():
+                cprint(f"[Robot][thinking] Speaking: {robot_text}")
+                return
+
             cprint(f"[Robot] Started speaking: {robot_text}")
             self.commit_user()
             
@@ -133,6 +137,10 @@ class FurhatBridge:
         if not self.shutting_down:
             robot_text = event.get("text", "")
             aborted = event.get("aborted", False)
+            if self.behavior_generator.is_in_thinking_mode():
+                if aborted:
+                    cprint(f"[Robot][thinking] Speech interrupted: {robot_text}")
+                return
             if aborted:
                 cprint(f"[Robot] Speech interrupted: {robot_text}")
             self.commit_robot(robot_text)

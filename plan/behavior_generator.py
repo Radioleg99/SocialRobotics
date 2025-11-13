@@ -15,6 +15,7 @@ class BehaviorGenerator:
     
     def __init__(self, furhat_client: Optional[AsyncFurhatClient] = None):
         self.furhat = furhat_client
+        self._thinking_mode = False
     
     def get_confidence_behavior(self, confidence: str) -> Tuple[str, str]:
         """获取信心等级对应的语言前缀和动作描述"""
@@ -22,6 +23,19 @@ class BehaviorGenerator:
             confidence = "medium"  # 默认值
         return self.CONFIDENCE_BEHAVIORS[confidence]
     
+    def set_thinking_mode(self, active: bool):
+        """标记当前是否处于思考语音阶段"""
+        self._thinking_mode = active
+
+    def is_in_thinking_mode(self) -> bool:
+        return self._thinking_mode
+
+    async def perform_thinking_behavior(self, sequence_index: int = 0):
+        """思考阶段的简单动作（循环使用轻量手势）"""
+        gesture_cycle = ["look straight", "slight head shake"]
+        gesture = gesture_cycle[sequence_index % len(gesture_cycle)]
+        await self.execute_gesture(gesture)
+
     async def execute_gesture(self, gesture_description: str):
         """根据动作描述执行 Furhat 动作"""
         if not self.furhat:

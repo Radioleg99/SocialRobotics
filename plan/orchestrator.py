@@ -14,6 +14,18 @@ from plan.prompts import (
     build_reasoning_prompt,
 )
 
+# Visible thinking configuration
+MAX_THINKING_CUES = 12
+THINKING_DURATION_SECONDS = 10.0
+THINKING_PAUSE_SECONDS = 0.5
+THINKING_FALLBACK_LINES = [
+    "Let me think this through.",
+    "I'm weighing a couple of options.",
+    "Checking what I already know.",
+    "Almost ready with an answer.",
+    "Considering how this fits your question.",
+]
+
 
 def normalize_thinking_notes(notes: Any) -> List[str]:
     """规范化思考笔记"""
@@ -22,6 +34,12 @@ def normalize_thinking_notes(notes: Any) -> List[str]:
     if isinstance(notes, str) and notes.strip():
         return [notes.strip()]
     return []
+
+def _is_meaningful_thinking_cue(text: str) -> bool:
+    """过滤掉仅包含标点或空白的 token"""
+    stripped = text.strip()
+    stripped = stripped.strip(".!?…")
+    return bool(stripped)
 
 
 class Orchestrator:
@@ -34,12 +52,12 @@ class Orchestrator:
         furhat_client = None
     ):
         self.question = question
-        self.stop_thinking = asyncio.Event()
         self.controller = ControllerModel(question)
         self.behavior_generator = behavior_generator or BehaviorGenerator()
         self.furhat_client = furhat_client  # Furhat 客户端，用于发送文本
         self.decision: Dict[str, Any] = {}
         self.current_answer_text = ""
+        self.thinking_window_done = asyncio.Event()
 
     async def run(self):
         """运行编排流程"""
@@ -47,14 +65,17 @@ class Orchestrator:
         need_thinking = bool(self.decision.get("need_thinking", False))
         confidence_hint = self.decision.get("confidence")
         cprint(f"User: {self.question}")
+        self.thinking_window_done.clear()
 
         if not need_thinking:
+            self.thinking_window_done.set()
             await self._respond_directly(confidence_hint)
             return
 
         # 需要思考的情况
         thinking_notes = normalize_thinking_notes(self.decision.get("thinking_notes"))
         reasoning_hint = self.decision.get("reasoning_hint", "")
+        self.behavior_generator.set_thinking_mode(True)
 
         thinking_model = ChatGPTSentenceStreamer(
             user_content=build_thinking_prompt(self.question, thinking_notes),
@@ -73,7 +94,6 @@ class Orchestrator:
         try:
             await self._relay_answer(reasoning_model, confidence_hint)
         finally:
-            self.stop_thinking.set()
             await thinking_task
 
     async def _respond_directly(self, confidence_hint: Optional[str]):
@@ -98,14 +118,42 @@ class Orchestrator:
 
     async def _relay_thinking(self, thinking_model: ChatGPTSentenceStreamer):
         """中继思考过程"""
-        thinking_texts = []
-        async for cue in thinking_model.stream():
-            if self.stop_thinking.is_set():
-                break
-            cprint(f"Robot (thinking): {cue}")
-            thinking_texts.append(cue)
-            # 可以选择性地将思考过程发送到 Furhat
-            # 但通常思考过程只显示，不语音输出
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + THINKING_DURATION_SECONDS
+        emitted = 0
+        fallback_idx = 0
+
+        async def emit_line(text: str, index: int):
+            cprint(f"Robot (thinking): {text}")
+            if self.furhat_client:
+                await self.furhat_client.request_speak_text(text)
+            if self.behavior_generator:
+                await self.behavior_generator.perform_thinking_behavior(index)
+
+        try:
+            async for cue in thinking_model.stream():
+                if loop.time() >= deadline or emitted >= MAX_THINKING_CUES:
+                    break
+                if not _is_meaningful_thinking_cue(cue):
+                    continue
+
+                await emit_line(cue, emitted)
+                emitted += 1
+                if loop.time() >= deadline or emitted >= MAX_THINKING_CUES:
+                    break
+                await asyncio.sleep(THINKING_PAUSE_SECONDS)
+
+            while loop.time() < deadline and emitted < MAX_THINKING_CUES:
+                filler = THINKING_FALLBACK_LINES[fallback_idx % len(THINKING_FALLBACK_LINES)]
+                fallback_idx += 1
+                await emit_line(filler, emitted)
+                emitted += 1
+                if loop.time() >= deadline or emitted >= MAX_THINKING_CUES:
+                    break
+                await asyncio.sleep(THINKING_PAUSE_SECONDS)
+        finally:
+            self.behavior_generator.set_thinking_mode(False)
+            self.thinking_window_done.set()
 
     async def _relay_answer(
         self,
@@ -122,7 +170,7 @@ class Orchestrator:
         # 先收集所有句子
         async for clause in reasoning_model.stream():
             if first_clause:
-                self.stop_thinking.set()
+                await self.thinking_window_done.wait()
                 confidence_level = self.behavior_generator.resolve_confidence(
                     confidence_hint, reasoning_model.word_count
                 )
