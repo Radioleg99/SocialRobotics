@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 
-# 确保控制台能正确输出中文：优先使用 reconfigure，若不可用则包裹成 UTF-8 输出流
+# Ensure console prints UTF-8 (prefer reconfigure, fallback to TextIOWrapper)
 try:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -23,59 +23,59 @@ CONFIG_JSON_PATH = Path("config.json")
 API_KEY_TXT_PATH = Path("api_key.txt")
 SETTINGS_LOADED = False
 
-# ==== 基础配置（直接在代码里调参，不依赖外部环境变量） ====
+# ==== Base configuration (overridable via config files) ====
 OPENAI_SETTINGS = {
-    # 默认留空；运行时会从 config.json 或 api_key.txt 注入
+    # Leave blank; load_api_settings_from_files will populate these at runtime
     "api_key": "",
     "base_url": "https://api.openai.com",
-    # 调度/判断是否需要思考的控制模型
+    # Controller model: decides whether to display visible thinking
     "controller_model": "gpt-4.1-mini",
     "controller_temperature": 0.2,
-    # 主回答模型
+    # Main reasoning model
     "reasoning_model": "gpt-4.1-mini",
     "reasoning_temperature": 0.4,
-    # 思考模型（目前同一接口，未来可改接 Furhat 专用 thinking 模型）
+    # Visible thinking model (can later be swapped for a Furhat-specific endpoint)
     "thinking_model": "gpt-4.1-mini",
     "thinking_temperature": 0.2,
 }
 
-# 不同信心等级对应的前缀话术与模拟肢体动作
+# Prefixes and gestures mapped to confidence tiers
 CONFIDENCE_BEHAVIORS: Dict[str, Tuple[str, str]] = {
-    "low": ("我不太确定，不过", "轻微摇头"),
-    "medium": ("看起来", "平视凝神"),
-    "high": ("我很有把握地说", "点头示意"),
+    "low": ("I'm not entirely sure, but ", "gentle head shake"),
+    "medium": ("It seems that ", "steady gaze"),
+    "high": ("I'm confident that ", "affirmative nod"),
 }
 
-# 控制模型 Prompt，决定是否需要显示思考
+MAX_THINKING_CUES = 4
+
+# Controller prompt: must output JSON describing the plan
 CONTROLLER_SYSTEM_PROMPT = (
-    "你是 Furhat 机器人的调度器，只能输出 JSON。"
-    "请根据用户问题判断是否需要进入“可见思考”状态，并给出简短思维链。"
-    "严格输出以下键："
-    '{"need_thinking": true/false,'
-    '"confidence": "low/medium/high",'
-    '"thinking_notes": ["短句1","短句2"],'
-    '"reasoning_hint": "给主回答模型的提示，可为空字符串",'
-    '"answer": "当 need_thinking 为 false 时直接给出的最终回答"}。'
-    "若 need_thinking 为 true，answer 必须是空字符串或省略。"
-    "不要添加多余文本、注释或 Markdown。"
+    "You are the Furhat conversation controller. Output ONLY strict JSON with the keys:"
+    ' {"need_thinking": true/false,'
+    ' "confidence": "low/medium/high",'
+    ' "thinking_notes": ["short thought 1","short thought 2"],'
+    ' "reasoning_hint": "concise hint for the main model",'
+    ' "answer": "final reply when no thinking is required" }.'
+    "Return answer only when need_thinking=false; otherwise leave it empty."
+    "Never add prose, comments, or Markdown."
 )
 
-# 主回答 Prompt，约束行文风格
+# Main answer prompt: concise, friendly summary
 REASONING_SYSTEM_PROMPT = (
-    "你是 Furhat 社交机器人，请用 2-3 句中文友好回答用户问题，"
-    "不要泄露内部推理，只输出最终建议。"
+    "You are a Furhat social robot. Reply in 2-3 friendly sentences,"
+    " focusing on clear advice without exposing internal reasoning."
 )
 
-# 思考层 Prompt
+# Visible thinking prompt
 THINKING_SYSTEM_PROMPT = (
-    "你是 Furhat 机器人的可见思考进程，需要在等待期间输出 2-4 句中文短语，"
-    "每句少于 12 个字，描述“我在想…/我在对比…/我在确认…”等动作，"
-    "语调自然，不给出最终答案，最后无需总结。"
+    "You simulate Furhat's visible thinking. Emit 2-4 short English phrases,"
+    " each under 12 words, describing ongoing cognition (e.g., 'Comparing options...')."
+    "Sound natural, avoid final answers, and skip summaries."
 )
 
 
 def load_api_settings_from_files():
-    """从 config.json 或 api_key.txt 注入密钥及可选配置。"""
+    """Inject API settings from config.json or api_key.txt."""
     global SETTINGS_LOADED
     if SETTINGS_LOADED:
         return
@@ -90,7 +90,7 @@ def load_api_settings_from_files():
                 if isinstance(loaded, dict):
                     config_data = loaded
         except json.JSONDecodeError as err:
-            raise RuntimeError(f"config.json 解析失败：{err}") from err
+            raise RuntimeError(f"Failed to parse config.json: {err}") from err
 
     if config_data:
         for field in [
@@ -117,7 +117,7 @@ def load_api_settings_from_files():
 
     if not api_key:
         raise RuntimeError(
-            "未找到 API Key。请在 config.json 的 api_key 字段或 api_key.txt 中填写密钥。"
+            "API key not found. Add it to config.json (api_key field) or api_key.txt."
         )
 
     OPENAI_SETTINGS["api_key"] = api_key
@@ -125,7 +125,7 @@ def load_api_settings_from_files():
 
 
 def cprint(text: str):
-    """安全打印中文；若默认编码不支持则退回到手动写入。"""
+    """Print UTF-8 text safely; fallback to manual buffer writes if needed."""
     try:
         print(text)
     except UnicodeEncodeError:
@@ -137,14 +137,14 @@ def cprint(text: str):
 
 
 class ControllerModel:
-    """调用控制模型，判断是否需要显示思考并给出提示。"""
+    """Call the controller model to decide whether visible thinking is needed."""
 
     def __init__(self, question: str):
         load_api_settings_from_files()
         self.question = question
         self.api_key = OPENAI_SETTINGS["api_key"]
         if not self.api_key:
-            raise RuntimeError("请在 OPENAI_SETTINGS['api_key'] 中填入合法的 API Key。")
+            raise RuntimeError("Please provide a valid API key in config.json or api_key.txt.")
         self.base_url = OPENAI_SETTINGS["base_url"].rstrip("/")
         self.model = OPENAI_SETTINGS.get("controller_model", OPENAI_SETTINGS["reasoning_model"])
         self.temperature = OPENAI_SETTINGS.get("controller_temperature", 0.2)
@@ -171,7 +171,7 @@ class ControllerModel:
     @staticmethod
     def _parse_json(text: str) -> Dict[str, Any]:
         candidate = text.strip()
-        # 去除可能包裹的 ```json ``` 块
+        # Remove optional ```json fences
         if candidate.startswith("```"):
             candidate = candidate.strip("`")
             if candidate.lower().startswith("json"):
@@ -179,11 +179,11 @@ class ControllerModel:
         try:
             return json.loads(candidate)
         except json.JSONDecodeError as err:
-            raise RuntimeError(f"控制模型返回的内容无法解析为 JSON：{candidate}") from err
+            raise RuntimeError(f"Controller response is not valid JSON: {candidate}") from err
 
 
 class ChatGPTSentenceStreamer:
-    """从 ChatGPT 接口流式获取句子级片段，可复用在主回答或思考通道。"""
+    """Stream sentence-level chunks from the ChatGPT API (for thinking or answers)."""
 
     def __init__(
         self,
@@ -200,12 +200,12 @@ class ChatGPTSentenceStreamer:
         self.system_prompt = system_prompt
         self.api_key = OPENAI_SETTINGS["api_key"]
         if not self.api_key:
-            raise RuntimeError("请在 OPENAI_SETTINGS['api_key'] 中填入合法的 API Key。")
+            raise RuntimeError("Please provide a valid API key in config.json or api_key.txt.")
         self.base_url = OPENAI_SETTINGS["base_url"].rstrip("/")
         self.word_count = 0
 
     async def stream(self):
-        """异步返回句子级别的流式片段。"""
+        """Asynchronously yield sentence-like chunks."""
         queue: asyncio.Queue = asyncio.Queue()
         loop = asyncio.get_running_loop()
 
@@ -292,20 +292,20 @@ class ChatGPTSentenceStreamer:
 
 def build_thinking_prompt(question: str, notes: List[str]) -> str:
     filtered = [note for note in notes if note]
-    joined = "\n".join(f"- {note}" for note in filtered) or "- 正在梳理可能的答案"
+    joined = "\n".join(f"- {note}" for note in filtered) or "- Reviewing possible answers"
     return (
-        f"用户问题：{question}\n"
-        f"已有初步思维：\n{joined}\n"
-        "按照系统提示生成可见思考短句。"
+        f"User question: {question}\n"
+        f"Preliminary thoughts:\n{joined}\n"
+        "Generate visible-thinking phrases following the system instructions."
     )
 
 
 def build_reasoning_prompt(question: str, hint: str) -> str:
-    hint_part = f"\n可参考的初步思路：{hint}" if hint else ""
+    hint_part = f"\nReference hint: {hint}" if hint else ""
     return (
-        f"用户问题：{question}"
+        f"User question: {question}"
         f"{hint_part}\n"
-        "请用 2-3 句总结解决方案，不要输出链式推理。"
+        "Summarize a solution in 2-3 sentences without sharing chain-of-thought."
     )
 
 
@@ -326,7 +326,7 @@ def resolve_confidence(hint: Optional[str], word_count: int) -> str:
 
 
 def estimate_confidence_from_words(word_count: int) -> str:
-    """根据累计词数粗略估计信心等级。"""
+    """Fallback heuristic: longer answers imply higher confidence."""
     if word_count < 25:
         return "low"
     if word_count < 60:
@@ -334,8 +334,14 @@ def estimate_confidence_from_words(word_count: int) -> str:
     return "high"
 
 
+def is_meaningful_cue(text: str) -> bool:
+    stripped = text.strip()
+    stripped = stripped.strip(".!?…")  # remove trailing punctuation
+    return bool(stripped)
+
+
 class Orchestrator:
-    """调度思考层与 ChatGPT 主回答，控制可见的状态切换。"""
+    """Orchestrates controller, thinking stream, and final answer delivery."""
 
     def __init__(self, question: str):
         self.question = question
@@ -347,7 +353,7 @@ class Orchestrator:
         self.decision = self.controller.decide()
         need_thinking = bool(self.decision.get("need_thinking", False))
         confidence_hint = self.decision.get("confidence")
-        cprint(f"参与者：{self.question}")
+        cprint(f"Participant: {self.question}")
 
         if not need_thinking:
             await self._respond_directly(confidence_hint)
@@ -379,28 +385,33 @@ class Orchestrator:
     async def _respond_directly(self, confidence_hint: Optional[str]):
         answer = (self.decision.get("answer") or "").strip()
         if not answer:
-            answer = "抱歉，我暂时无法给出答案。"
+            answer = "Sorry, I don't have a confident answer yet."
         confidence = confidence_hint if confidence_hint in CONFIDENCE_BEHAVIORS else "medium"
-        prefix, gesture = CONFIDENCE_BEHAVIORS[confidence]
+        _, gesture = CONFIDENCE_BEHAVIORS[confidence]
         cprint(
-            "机器人直接进入回答模式 "
-            f"(信心等级={confidence}, 对应动作={gesture})"
+            "Robot switches directly to answer mode "
+            f"(confidence={confidence}, gesture={gesture})"
         )
-        cprint(f"机器人：{prefix}{answer}")
-        cprint(f"机器人（非语言动作）：{gesture}")
+        cprint(f"Robot: {answer}")
+        cprint(f"Robot (nonverbal): {gesture}")
 
     async def _relay_thinking(self, thinking_model: ChatGPTSentenceStreamer):
+        emitted = 0
         async for cue in thinking_model.stream():
             if self.stop_thinking.is_set():
                 break
-            cprint(f"机器人（思考中）：{cue}")
+            if not is_meaningful_cue(cue):
+                continue
+            cprint(f"Robot (thinking): {cue}")
+            emitted += 1
+            if emitted >= MAX_THINKING_CUES:
+                break
 
     async def _relay_answer(
         self,
         reasoning_model: ChatGPTSentenceStreamer,
         confidence_hint: Optional[str],
     ):
-        prefix = ""
         gesture = ""
         first_clause = True
 
@@ -408,30 +419,30 @@ class Orchestrator:
             if first_clause:
                 self.stop_thinking.set()
                 confidence_level = resolve_confidence(confidence_hint, reasoning_model.word_count)
-                prefix, gesture = CONFIDENCE_BEHAVIORS[confidence_level]
+                _, gesture = CONFIDENCE_BEHAVIORS[confidence_level]
                 cprint(
-                    "机器人切换为回答模式 "
-                    f"(信心等级={confidence_level}, 对应动作={gesture})"
+                    "Robot hands off to answer mode "
+                    f"(confidence={confidence_level}, gesture={gesture})"
                 )
                 first_clause = False
 
-            cprint(f"机器人：{prefix}{clause}")
+            cprint(f"Robot: {clause}")
         if gesture:
-            cprint(f"机器人（非语言动作）：{gesture}")
+            cprint(f"Robot (nonverbal): {gesture}")
 
 
 def main():
-    question = input("请向机器人提问：") or "你如何展示思考过程？"
+    question = input("Ask the robot a question: ") or "How do you show thinking?"
     load_api_settings_from_files()
     orchestrator = Orchestrator(question)
     try:
         asyncio.run(orchestrator.run())
     except RuntimeError as err:
-        cprint(f"配置错误：{err}")
+        cprint(f"Configuration error: {err}")
     except requests.HTTPError as err:
-        cprint(f"OpenAI 接口错误：{err.response.text}")
+        cprint(f"OpenAI API error: {err.response.text}")
     except Exception as err:  # pragma: no cover
-        cprint(f"未预期的错误：{err}")
+        cprint(f"Unexpected error: {err}")
 
 
 if __name__ == "__main__":
