@@ -122,15 +122,16 @@ class FurhatBridge:
 
             cprint(f"[Robot] Started speaking: {robot_text}")
             self.commit_user()
-            
-            # 根据说话内容推断信心等级并执行相应动作
+
+            # 根据说话内容推断信心等级并执行相应多模态行为
             confidence = self.behavior_generator.infer_confidence_from_text(robot_text)
-            _, gesture_description = self.behavior_generator.get_confidence_behavior(confidence)
-            cprint(f"[System] Inferred confidence: {confidence}, gesture: {gesture_description}")
-            
-            # 执行动作
+            prefix, gesture, expression, led_color = self.behavior_generator.get_full_confidence_behavior(confidence)
+            cprint(f"[System] Inferred confidence: {confidence}")
+            cprint(f"[System] Multimodal behaviors: gesture={gesture}, expression={expression}, LED={led_color}")
+
+            # 执行多模态行为（手势+表情+LED）- 使用新方法
             if self.behavior_generator.furhat:
-                await self.behavior_generator.execute_gesture(gesture_description)
+                await self.behavior_generator.execute_multimodal_behavior(confidence)
 
     async def on_speak_end(self, event):
         """机器人停止说话时的事件处理"""

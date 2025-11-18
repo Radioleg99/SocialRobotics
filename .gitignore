@@ -1,2 +1,26 @@
 config.json
 api_key.txt
+
+# Python 编译文件和缓存
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# IDE 文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# 日志文件
+*.log
+
