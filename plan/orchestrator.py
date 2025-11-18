@@ -1,4 +1,4 @@
-"""编排器：组织思考和回答流程"""
+"""Orchestrator: coordinate thinking and answering flows."""
 import asyncio
 from typing import Any, Dict, Optional, List
 
@@ -18,17 +18,10 @@ from plan.prompts import (
 MAX_THINKING_CUES = 12
 THINKING_DURATION_SECONDS = 10.0
 THINKING_PAUSE_SECONDS = 0.5
-THINKING_FALLBACK_LINES = [
-    "Let me think this through.",
-    "I'm weighing a couple of options.",
-    "Checking what I already know.",
-    "Almost ready with an answer.",
-    "Considering how this fits your question.",
-]
 
 
 def normalize_thinking_notes(notes: Any) -> List[str]:
-    """规范化思考笔记"""
+    """Normalize thinking notes so the list is safe to iterate."""
     if isinstance(notes, list):
         return [str(item) for item in notes if item]
     if isinstance(notes, str) and notes.strip():
@@ -36,14 +29,14 @@ def normalize_thinking_notes(notes: Any) -> List[str]:
     return []
 
 def _is_meaningful_thinking_cue(text: str) -> bool:
-    """过滤掉仅包含标点或空白的 token"""
+    """Filter out tokens that contain only punctuation or whitespace."""
     stripped = text.strip()
     stripped = stripped.strip(".!?…")
     return bool(stripped)
 
 
 class Orchestrator:
-    """调度思考层与 ChatGPT 主回答，控制可见的状态切换"""
+    """Coordinate the controller, thinking stream, and final answer."""
 
     def __init__(
         self, 
@@ -54,13 +47,13 @@ class Orchestrator:
         self.question = question
         self.controller = ControllerModel(question)
         self.behavior_generator = behavior_generator or BehaviorGenerator()
-        self.furhat_client = furhat_client  # Furhat 客户端，用于发送文本
+        self.furhat_client = furhat_client  # Furhat client used to send speech
         self.decision: Dict[str, Any] = {}
         self.current_answer_text = ""
         self.thinking_window_done = asyncio.Event()
 
     async def run(self):
-        """运行编排流程"""
+        """Execute the full pipeline."""
         self.decision = self.controller.decide()
         need_thinking = bool(self.decision.get("need_thinking", False))
         confidence_hint = self.decision.get("confidence")
@@ -72,7 +65,6 @@ class Orchestrator:
             await self._respond_directly(confidence_hint)
             return
 
-        # 需要思考的情况
         thinking_notes = normalize_thinking_notes(self.decision.get("thinking_notes"))
         reasoning_hint = self.decision.get("reasoning_hint", "")
         self.behavior_generator.set_thinking_mode(True)
@@ -90,14 +82,14 @@ class Orchestrator:
             system_prompt=REASONING_SYSTEM_PROMPT,
         )
 
-        thinking_task = asyncio.create_task(self._relay_thinking(thinking_model))
+        thinking_task = asyncio.create_task(self._relay_thinking(thinking_model, thinking_notes))
         try:
             await self._relay_answer(reasoning_model, confidence_hint)
         finally:
             await thinking_task
 
     async def _respond_directly(self, confidence_hint: Optional[str]):
-        """直接回答（不需要思考）"""
+        """Handle situations where no thinking window is required."""
         answer = (self.decision.get("answer") or "").strip()
         if not answer:
             answer = "I'm sorry, I can't provide an answer at the moment."
@@ -109,19 +101,17 @@ class Orchestrator:
         cprint(f"Robot directly responds (confidence={confidence}, gesture={gesture_description})")
         cprint(f"Robot: {full_answer}")
         
-        # 发送文本到 Furhat（只发送一次完整答案）
-        # 动作会在 on_speak_start 事件中根据文本内容自动执行
+        # Send a single utterance to Furhat; gestures are inferred via events
         if self.furhat_client:
             await self.furhat_client.request_speak_text(full_answer)
         
         self.current_answer_text = full_answer
 
-    async def _relay_thinking(self, thinking_model: ChatGPTSentenceStreamer):
-        """中继思考过程"""
+    async def _relay_thinking(self, thinking_model: ChatGPTSentenceStreamer, thinking_notes: List[str]):
+        """Relay thinking: emit controller notes first, then the thinking model."""
         loop = asyncio.get_running_loop()
         deadline = loop.time() + THINKING_DURATION_SECONDS
         emitted = 0
-        fallback_idx = 0
 
         async def emit_line(text: str, index: int):
             cprint(f"Robot (thinking): {text}")
@@ -131,6 +121,18 @@ class Orchestrator:
                 await self.behavior_generator.perform_thinking_behavior(index)
 
         try:
+            for note in thinking_notes:
+                if loop.time() >= deadline or emitted >= MAX_THINKING_CUES:
+                    break
+                cleaned = note.strip()
+                if not cleaned:
+                    continue
+                await emit_line(cleaned, emitted)
+                emitted += 1
+                if loop.time() >= deadline or emitted >= MAX_THINKING_CUES:
+                    break
+                await asyncio.sleep(THINKING_PAUSE_SECONDS)
+
             async for cue in thinking_model.stream():
                 if loop.time() >= deadline or emitted >= MAX_THINKING_CUES:
                     break
@@ -138,15 +140,6 @@ class Orchestrator:
                     continue
 
                 await emit_line(cue, emitted)
-                emitted += 1
-                if loop.time() >= deadline or emitted >= MAX_THINKING_CUES:
-                    break
-                await asyncio.sleep(THINKING_PAUSE_SECONDS)
-
-            while loop.time() < deadline and emitted < MAX_THINKING_CUES:
-                filler = THINKING_FALLBACK_LINES[fallback_idx % len(THINKING_FALLBACK_LINES)]
-                fallback_idx += 1
-                await emit_line(filler, emitted)
                 emitted += 1
                 if loop.time() >= deadline or emitted >= MAX_THINKING_CUES:
                     break
@@ -160,14 +153,14 @@ class Orchestrator:
         reasoning_model: ChatGPTSentenceStreamer,
         confidence_hint: Optional[str],
     ):
-        """中继回答过程"""
+        """Relay the streamed answer."""
         prefix = ""
         gesture_description = ""
         first_clause = True
         answer_parts = []
         full_answer_parts = []
 
-        # 先收集所有句子
+        # Collect all sentences first
         async for clause in reasoning_model.stream():
             if first_clause:
                 await self.thinking_window_done.wait()
@@ -177,7 +170,7 @@ class Orchestrator:
                 prefix, gesture_description = self.behavior_generator.get_confidence_behavior(confidence_level)
                 cprint(f"Robot switches to answer mode (confidence={confidence_level}, gesture={gesture_description})")
                 
-                # 动作会在 on_speak_start 事件中根据文本内容自动执行，这里不需要手动执行
+                # Gestures are dispatched by the bridge when speech starts
                 first_clause = False
 
             answer_parts.append(clause)
@@ -185,12 +178,12 @@ class Orchestrator:
             full_answer_parts.append(clause)
             cprint(f"Robot: {full_clause}")
         
-        # 合并所有句子，一次性发送到 Furhat（避免每个句子都触发事件）
+        # Send a single combined utterance to Furhat to avoid repeated triggers
         if full_answer_parts:
             full_answer = f"{prefix} {' '.join(full_answer_parts)}".strip() if prefix else " ".join(full_answer_parts)
             self.current_answer_text = full_answer
             
-            # 只在最后发送一次完整答案
+            # Only send once at the end
             if self.furhat_client:
                 await self.furhat_client.request_speak_text(full_answer)
         
