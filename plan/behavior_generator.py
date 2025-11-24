@@ -1,6 +1,9 @@
 """Behavior generator: translate action descriptions into Furhat API calls."""
-from typing import Optional, Tuple, Dict, Any
+import json
+from pathlib import Path
+from typing import Optional, Tuple, Dict, Any, List
 from furhat_realtime_api import AsyncFurhatClient
+from utils.print_utils import cprint
 
 
 class BehaviorGenerator:
@@ -31,6 +34,8 @@ class BehaviorGenerator:
         self.furhat = furhat_client
         self._thinking_mode = False
         self._pending_confidence: Optional[str] = None
+        self._thinking_script: List[Dict[str, Any]] = self._load_thinking_script()
+        self._spoken_thinking_steps: set[int] = set()
 
     def get_confidence_behavior(self, confidence: str) -> Tuple[str, str]:
         """Return the verbal prefix and gesture for the given confidence tier."""
@@ -47,6 +52,9 @@ class BehaviorGenerator:
     def set_thinking_mode(self, active: bool):
         """Flag that the robot is currently verbalizing visible thinking."""
         self._thinking_mode = active
+        if not active:
+            # Reset per-thinking-window state
+            self._spoken_thinking_steps.clear()
 
     def is_in_thinking_mode(self) -> bool:
         return self._thinking_mode
@@ -74,7 +82,23 @@ class BehaviorGenerator:
             return
 
         if instruction:
-            await self._apply_behavior_instruction(instruction)
+            merged = dict(instruction)
+            # If the controller plan lacks some fields, optionally fill from scripted step
+            if self._thinking_script:
+                script_step = self._thinking_script[sequence_index % len(self._thinking_script)]
+                for key in ("gesture", "expression", "led", "led_color", "led_hex", "utterance", "speech"):
+                    if key not in merged and key in script_step:
+                        merged[key] = script_step[key]
+            cprint(f"[Thinking] Using controller plan (merged): {merged}")
+            await self._apply_behavior_instruction(merged)
+            return
+
+        # If a scripted thinking sequence is present, cycle through it
+        if self._thinking_script:
+            step_index = sequence_index % len(self._thinking_script)
+            step = self._thinking_script[step_index]
+            cprint(f"[Thinking] Using scripted step: {step}")
+            await self._apply_behavior_instruction(step, step_index=step_index)
             return
 
         gesture_cycle = ["look straight", "slight head shake"]
@@ -92,12 +116,18 @@ class BehaviorGenerator:
             return_exceptions=True
         )
 
-    async def _apply_behavior_instruction(self, instruction: Dict[str, Any]):
+    async def _apply_behavior_instruction(self, instruction: Dict[str, Any], step_index: Optional[int] = None):
         """Execute gestures/expressions/LED settings defined by the controller."""
         tasks = []
         gesture = instruction.get("gesture")
         expression = instruction.get("expression")
         led = instruction.get("led") or instruction.get("led_color") or instruction.get("led_hex")
+        utterance = instruction.get("utterance") or instruction.get("speech")
+        speak_allowed = True
+        if step_index is not None:
+            # Only speak once per step per thinking window
+            if step_index in self._spoken_thinking_steps:
+                speak_allowed = False
 
         if gesture:
             tasks.append(self.execute_gesture(gesture))
@@ -113,6 +143,16 @@ class BehaviorGenerator:
         if tasks:
             import asyncio
             await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Optional utterance during thinking
+        if utterance and self.furhat and speak_allowed:
+            try:
+                await self.furhat.request_speak_text(str(utterance))
+                cprint(f"[Thinking] Instruction utterance: {utterance}")
+                if step_index is not None:
+                    self._spoken_thinking_steps.add(step_index)
+            except Exception as e:
+                cprint(f"[Thinking] Failed to speak instruction utterance: {e}")
 
     async def execute_multimodal_behavior(self, confidence: str):
         """Perform the confidence-specific multimodal behavior."""
@@ -249,6 +289,24 @@ class BehaviorGenerator:
         elif "let me think" in text_lower or "i think" in text_lower:
             return "medium"
         return "medium"
+
+    def _load_thinking_script(self) -> List[Dict[str, Any]]:
+        """Load scripted thinking behaviors from thinking_behaviors.json if present."""
+        script_path = Path(__file__).resolve().parent.parent / "thinking_behaviors.json"
+        if not script_path.exists():
+            return []
+        try:
+            with script_path.open("r", encoding="utf-8") as fp:
+                data = json.load(fp)
+            if isinstance(data, list):
+                cleaned = []
+                for entry in data:
+                    if isinstance(entry, dict):
+                        cleaned.append(entry)
+                return cleaned
+        except Exception as e:
+            cprint(f"Failed to load thinking_behaviors.json: {e}")
+        return []
 
     @staticmethod
     def _estimate_confidence_from_words(word_count: int) -> str:

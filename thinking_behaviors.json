@@ -1,0 +1,34 @@
+[
+  {
+    "utterance": "let me think",
+    "gesture": "look straight",
+    "expression": "Thoughtful",
+    "led": "blue"
+  },
+  {
+    "gesture": "slight head shake",
+    "expression": "Oh",
+    "led": "purple"
+  },
+  {
+    "gesture": "nod head",
+    "expression": "Thoughtful",
+    "led": "yellow"
+  },
+  {
+    "utterance": "emmmm",
+    "gesture": "look straight",
+    "expression": "Thoughtful",
+    "led": "blue"
+  },
+  {
+    "gesture": "slight head shake",
+    "expression": "Oh",
+    "led": "purple"
+  },
+  {
+    "gesture": "nod head",
+    "expression": "Thoughtful",
+    "led": "yellow"
+  }
+]

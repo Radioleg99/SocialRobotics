@@ -1,63 +1,136 @@
-[2025-11-24 11:52:02] Starting dialogue...
-[2025-11-24 11:52:02] Press Ctrl+C to stop gracefully
-[2025-11-24 11:52:02] [Robot] Started speaking: Hello, I am Furhat. How are you today?
-[2025-11-24 11:52:02] [System] Inferred confidence: medium
-[2025-11-24 11:52:02] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
-[2025-11-24 11:52:07] 
+[2025-11-24 12:25:38] Starting dialogue...
+[2025-11-24 12:25:38] Press Ctrl+C to stop gracefully
+[2025-11-24 12:25:38] [Robot] Started speaking: Hello, I am Furhat. How are you today?
+[2025-11-24 12:25:38] [System] Inferred confidence: medium
+[2025-11-24 12:25:38] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
+[2025-11-24 12:27:07] Starting dialogue...
+[2025-11-24 12:27:07] Press Ctrl+C to stop gracefully
+[2025-11-24 12:27:07] [Robot] Started speaking: Hello, I am Furhat. How are you today?
+[2025-11-24 12:27:07] [System] Inferred confidence: medium
+[2025-11-24 12:27:07] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
+[2025-11-24 12:28:42] Starting dialogue...
+[2025-11-24 12:28:42] Press Ctrl+C to stop gracefully
+[2025-11-24 12:28:43] [Robot] Started speaking: Hello, I am Furhat. How are you today?
+[2025-11-24 12:28:43] [System] Inferred confidence: medium
+[2025-11-24 12:28:43] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
+[2025-11-24 12:28:47] 
 [User] Started speaking...
-[2025-11-24 11:52:08] [User] Speech content: uh I'm good
-[2025-11-24 11:52:09] User: uh I'm good
-[2025-11-24 11:52:09] Robot directly responds (confidence=high, gesture=nod head)
-[2025-11-24 11:52:09] Robot: Okay, let me know if you need anything.
-[2025-11-24 11:52:10] [Robot] Started speaking: Okay, let me know if you need anything.
-[2025-11-24 11:52:10] [System] Inferred confidence: high
-[2025-11-24 11:52:10] [System] Multimodal behaviors: gesture=nod head, expression=BigSmile, LED=green
-[2025-11-24 11:52:14] 
+[2025-11-24 12:28:48] [User] Speech content: I'm good
+[2025-11-24 12:28:50] User: I'm good
+[2025-11-24 12:28:50] Robot directly responds (confidence=high, gesture=nod head)
+[2025-11-24 12:28:50] Robot: Glad to hear that! How can I assist you today?
+[2025-11-24 12:28:50] [Robot] Started speaking: Glad to hear that! How can I assist you today?
+[2025-11-24 12:28:50] [System] Inferred confidence: high
+[2025-11-24 12:28:50] [System] Multimodal behaviors: gesture=nod head, expression=BigSmile, LED=green
+[2025-11-24 12:28:55] 
 [User] Started speaking...
-[2025-11-24 11:52:18] [User] Speech content: uh I want to know how to build a robot like you
-[2025-11-24 11:52:20] User: uh I want to know how to build a robot like you
-[2025-11-24 11:52:20] Robot (thinking): considering robot building steps
-[2025-11-24 11:52:20] Robot (thinking): evaluating complexity
-[2025-11-24 11:52:22] Robot (thinking): I'm considering robot building steps.
-[2025-11-24 11:52:22] Robot (thinking): I'm evaluating complexity levels.
-[2025-11-24 11:52:23] Robot (thinking): I'm recalling key components needed.
-[2025-11-24 11:52:23] Robot (thinking): I'm organizing the process logically.
-[2025-11-24 11:52:24] Robot switches to answer mode (confidence=medium, gesture=look straight)
-[2025-11-24 11:52:24] Robot: Building a robot like me involves combining advanced hardware, such as sensors and motors for movement and expression, with sophisticated software for speech recognition, natural language processing, and social interaction.
-[2025-11-24 11:52:24] Robot: You would need skills in robotics, AI programming, and design to create a system that can engage naturally with people.
-[2025-11-24 11:52:24] Robot: Starting with open-source robotics platforms and AI tools can be a great way to begin exploring this complex but rewarding field.
-[2025-11-24 11:52:24] Robot (non-verbal gesture): look straight
-[2025-11-24 11:52:24] [Robot] Started speaking: Building a robot like me involves combining advanced hardware, such as sensors and motors for movement and expression, with sophisticated software for speech recognition, natural language processing, and social interaction. You would need skills in robotics, AI programming, and design to create a system that can engage naturally with people. Starting with open-source robotics platforms and AI tools can be a great way to begin exploring this complex but rewarding field.
-[2025-11-24 11:52:24] [System] Inferred confidence: medium
-[2025-11-24 11:52:24] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
-[2025-11-24 11:52:58] 
+[2025-11-24 12:28:57] [User] Speech content: uh how to build a robot like you
+[2025-11-24 12:28:59] User: uh how to build a robot like you
+[2025-11-24 12:28:59] Robot (thinking): consider hardware components
+[2025-11-24 12:28:59] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'Starting to think about hardware', 'utterance': 'let me think'}
+[2025-11-24 12:28:59] [Thinking] Instruction utterance: let me think
+[2025-11-24 12:28:59] [Robot][thinking] Speaking: let me think
+[2025-11-24 12:29:00] Robot (thinking): consider software architecture
+[2025-11-24 12:29:00] [Thinking] Using controller plan (merged): {'gesture': 'nod head', 'expression': 'Thoughtful', 'led': 'yellow', 'reason': 'Considering software aspects'}
+[2025-11-24 12:29:01] Robot (thinking): I'm considering hardware components.
+[2025-11-24 12:29:01] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'Starting to think about hardware'}
+[2025-11-24 12:29:01] Robot (thinking): I'm thinking about software architecture.
+[2025-11-24 12:29:01] [Thinking] Using controller plan (merged): {'gesture': 'nod head', 'expression': 'Thoughtful', 'led': 'yellow', 'reason': 'Considering software aspects', 'utterance': 'emmmm'}
+[2025-11-24 12:29:01] [Thinking] Instruction utterance: emmmm
+[2025-11-24 12:29:01] [Robot][thinking] Speaking: emmmm
+[2025-11-24 12:29:02] Robot (thinking): I'm comparing robot designs.
+[2025-11-24 12:29:02] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'Starting to think about hardware'}
+[2025-11-24 12:29:02] Robot (thinking): I'm confirming key features.
+[2025-11-24 12:29:02] [Thinking] Using controller plan (merged): {'gesture': 'nod head', 'expression': 'Thoughtful', 'led': 'yellow', 'reason': 'Considering software aspects'}
+[2025-11-24 12:29:03] Robot switches to answer mode (confidence=medium, gesture=look straight)
+[2025-11-24 12:29:03] Robot: Building a robot like me involves combining advanced hardware for movement and sensing with sophisticated software for speech, facial recognition, and natural language understanding.
+[2025-11-24 12:29:03] Robot: You’d need skills in robotics, AI programming, and design, along with access to components like cameras, microphones, and actuators.
+[2025-11-24 12:29:03] Robot: Starting with platforms like open-source robotics kits and AI frameworks can help you gradually develop these capabilities.
+[2025-11-24 12:29:03] Robot (non-verbal gesture): look straight
+[2025-11-24 12:29:03] [Robot] Started speaking: Building a robot like me involves combining advanced hardware for movement and sensing with sophisticated software for speech, facial recognition, and natural language understanding. You’d need skills in robotics, AI programming, and design, along with access to components like cameras, microphones, and actuators. Starting with platforms like open-source robotics kits and AI frameworks can help you gradually develop these capabilities.
+[2025-11-24 12:29:03] [System] Inferred confidence: medium
+[2025-11-24 12:29:03] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
+[2025-11-24 12:30:17] 
 [User] Started speaking...
-[2025-11-24 11:53:01] [User] Speech content: uh and I want to know like uh how to become
-[2025-11-24 11:53:03] User: uh and I want to know like uh how to become
-[2025-11-24 11:53:03] Robot (thinking): User is hesitating
-[2025-11-24 11:53:03] 
+[2025-11-24 12:30:18] [User] Speech content: okay
+[2025-11-24 12:30:18] User: okay
+[2025-11-24 12:30:18] Robot directly responds (confidence=high, gesture=nod head)
+[2025-11-24 12:30:18] Robot: Okay.
+[2025-11-24 12:30:18] 
 [User] Started speaking...
-[2025-11-24 11:53:03] [System] Cancelling request...
-[2025-11-24 11:53:03] [System] Previous request still processing, ignoring new input
-[2025-11-24 11:53:04] Robot (thinking): User is asking how to become something
-[2025-11-24 11:53:05] Robot (thinking): I'm listening carefully.
-[2025-11-24 11:53:05] Robot (thinking): I'm processing your question.
-[2025-11-24 11:53:06] Robot (thinking): I'm identifying key information.
-[2025-11-24 11:53:06] [System] Request cancelled
-[2025-11-24 11:53:16] 
+[2025-11-24 12:30:18] [Robot] Started speaking: Okay.
+[2025-11-24 12:30:18] [System] Inferred confidence: high
+[2025-11-24 12:30:18] [System] Multimodal behaviors: gesture=nod head, expression=BigSmile, LED=green
+[2025-11-24 12:30:19] [User] Speech content: okay I brought you
+[2025-11-24 12:30:20] User: okay I brought you
+[2025-11-24 12:30:20] Robot (thinking): interpreting 'okay I brought you'
+[2025-11-24 12:30:20] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'processing user statement', 'utterance': 'let me think'}
+[2025-11-24 12:30:20] [Thinking] Instruction utterance: let me think
+[2025-11-24 12:30:21] [Robot][thinking] Speaking: let me think
+[2025-11-24 12:30:21] Robot (thinking): checking context for meaning
+[2025-11-24 12:30:21] [Thinking] Using controller plan (merged): {'gesture': 'slight head shake', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'considering possible meanings'}
+[2025-11-24 12:30:22] Robot (thinking): I'm interpreting your message.
+[2025-11-24 12:30:22] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'processing user statement'}
+[2025-11-24 12:30:22] Robot (thinking): Checking context for clarity.
+[2025-11-24 12:30:22] [Thinking] Using controller plan (merged): {'gesture': 'slight head shake', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'considering possible meanings', 'utterance': 'emmmm'}
+[2025-11-24 12:30:22] [Thinking] Instruction utterance: emmmm
+[2025-11-24 12:30:23] [Robot][thinking] Speaking: emmmm
+[2025-11-24 12:30:23] Robot (thinking): Considering possible meanings.
+[2025-11-24 12:30:23] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'processing user statement'}
+[2025-11-24 12:30:23] Robot switches to answer mode (confidence=medium, gesture=look straight)
+[2025-11-24 12:30:23] Robot: Thanks for letting me know you brought something!
+[2025-11-24 12:30:23] Robot: Could you tell me a bit more about what you brought or how I can assist you with it?
+[2025-11-24 12:30:23] Robot: I'm here to help however I can.
+[2025-11-24 12:30:23] Robot (non-verbal gesture): look straight
+[2025-11-24 12:30:24] [Robot] Started speaking: Thanks for letting me know you brought something! Could you tell me a bit more about what you brought or how I can assist you with it? I'm here to help however I can.
+[2025-11-24 12:30:24] [System] Inferred confidence: medium
+[2025-11-24 12:30:24] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
+[2025-11-24 12:31:05] 
 [User] Started speaking...
-[2025-11-24 11:53:18] [User] Speech content: uh and I want to know like uh how to become engineer why request a canceled
-[2025-11-24 11:53:20] User: uh and I want to know like uh how to become engineer why request a canceled
-[2025-11-24 11:53:20] Robot (thinking): Clarify user's intent
-[2025-11-24 11:53:21] Robot (thinking): Consider multiple topics
-[2025-11-24 11:53:22] Robot (thinking): I'm trying to understand your question.
-[2025-11-24 11:53:22] Robot (thinking): I'm clarifying the topic about becoming an engineer.
-[2025-11-24 11:53:23] Robot (thinking): I'm considering the part about request cancellation.
-[2025-11-24 11:53:23] Robot switches to answer mode (confidence=medium, gesture=look straight)
-[2025-11-24 11:53:23] Robot: To become an engineer, you typically need to study engineering at a university or technical school and gain practical experience through internships or projects.
-[2025-11-24 11:53:23] Robot: If your request was canceled, it might be helpful to check the reason or contact the organization involved for clarification.
-[2025-11-24 11:53:23] Robot: Let me know if you want guidance on specific engineering fields or how to handle canceled requests!
-[2025-11-24 11:53:23] Robot (non-verbal gesture): look straight
-[2025-11-24 11:53:23] [Robot] Started speaking: To become an engineer, you typically need to study engineering at a university or technical school and gain practical experience through internships or projects. If your request was canceled, it might be helpful to check the reason or contact the organization involved for clarification. Let me know if you want guidance on specific engineering fields or how to handle canceled requests!
-[2025-11-24 11:53:23] [System] Inferred confidence: medium
-[2025-11-24 11:53:23] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
+[2025-11-24 12:31:06] [User] Speech content: let me see
+[2025-11-24 12:31:08] User: let me see
+[2025-11-24 12:31:08] Robot (thinking): interpreting 'let me see'
+[2025-11-24 12:31:08] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'processing user request', 'utterance': 'let me think'}
+[2025-11-24 12:31:08] [Thinking] Instruction utterance: let me think
+[2025-11-24 12:31:08] [Robot][thinking] Speaking: let me think
+[2025-11-24 12:31:08] Robot (thinking): considering user intent
+[2025-11-24 12:31:08] [Thinking] Using controller plan (merged): {'gesture': 'slight head shake', 'expression': 'Thoughtful', 'led': 'yellow', 'reason': 'evaluating possible meanings'}
+[2025-11-24 12:31:10] Robot (thinking): I'm interpreting your request  
+I'm considering possible meanings  
+I'm preparing to respond  
+I'm clarifying your intent
+[2025-11-24 12:31:10] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'processing user request'}
+[2025-11-24 12:31:11] Robot switches to answer mode (confidence=medium, gesture=look straight)
+[2025-11-24 12:31:11] Robot: Sure!
+[2025-11-24 12:31:11] Robot: Could you please specify what you'd like to see or learn more about?
+[2025-11-24 12:31:11] Robot: I'm here to help with any information or clarification you need.
+[2025-11-24 12:31:11] Robot (non-verbal gesture): look straight
+[2025-11-24 12:31:11] [Robot] Started speaking: Sure! Could you please specify what you'd like to see or learn more about? I'm here to help with any information or clarification you need.
+[2025-11-24 12:31:11] [System] Inferred confidence: medium
+[2025-11-24 12:31:11] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
+[2025-11-24 12:31:22] 
+[User] Started speaking...
+[2025-11-24 12:31:30] [User] Speech content: oh I want to know how to build a robot like the feeder AI or The Invader AI I don't know I don't know what's
+[2025-11-24 12:31:33] User: oh I want to know how to build a robot like the feeder AI or The Invader AI I don't know I don't know what's
+[2025-11-24 12:31:33] Robot (thinking): Understanding robot types
+[2025-11-24 12:31:33] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'Processing user query', 'utterance': 'let me think'}
+[2025-11-24 12:31:33] [Thinking] Instruction utterance: let me think
+[2025-11-24 12:31:33] [Robot][thinking] Speaking: let me think
+[2025-11-24 12:31:33] Robot (thinking): Clarifying AI capabilities
+[2025-11-24 12:31:33] [Thinking] Using controller plan (merged): {'gesture': 'slight head shake', 'expression': 'Oh', 'led': 'yellow', 'reason': 'Uncertainty about specific AI'}
+[2025-11-24 12:31:34] Robot (thinking): I'm understanding your question.
+[2025-11-24 12:31:34] [Thinking] Using controller plan (merged): {'gesture': 'nod head', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'Formulating response'}
+[2025-11-24 12:31:35] Robot (thinking): I'm considering robot types.
+[2025-11-24 12:31:35] [Thinking] Using controller plan (merged): {'gesture': 'look straight', 'expression': 'Thoughtful', 'led': 'blue', 'reason': 'Processing user query', 'utterance': 'emmmm'}
+[2025-11-24 12:31:35] [Thinking] Instruction utterance: emmmm
+[2025-11-24 12:31:35] [Robot][thinking] Speaking: emmmm
+[2025-11-24 12:31:35] Robot (thinking): I'm clarifying AI capabilities.
+[2025-11-24 12:31:35] [Thinking] Using controller plan (merged): {'gesture': 'slight head shake', 'expression': 'Oh', 'led': 'yellow', 'reason': 'Uncertainty about specific AI'}
+[2025-11-24 12:31:36] Robot switches to answer mode (confidence=medium, gesture=look straight)
+[2025-11-24 12:31:36] Robot: Building AI robots like Feeder AI or The Invader AI involves combining programming skills with robotics hardware and machine learning techniques.
+[2025-11-24 12:31:36] Robot: I recommend starting by learning basics in AI, coding (like Python), and robotics platforms such as Arduino or Raspberry Pi.
+[2025-11-24 12:31:36] Robot: Exploring online tutorials and communities can also guide you step-by-step in creating your own intelligent robot.
+[2025-11-24 12:31:36] Robot (non-verbal gesture): look straight
+[2025-11-24 12:31:36] [Robot] Started speaking: Building AI robots like Feeder AI or The Invader AI involves combining programming skills with robotics hardware and machine learning techniques. I recommend starting by learning basics in AI, coding (like Python), and robotics platforms such as Arduino or Raspberry Pi. Exploring online tutorials and communities can also guide you step-by-step in creating your own intelligent robot.
+[2025-11-24 12:31:36] [System] Inferred confidence: medium
+[2025-11-24 12:31:36] [System] Multimodal behaviors: gesture=look straight, expression=Thoughtful, LED=blue
