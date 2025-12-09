@@ -26,12 +26,16 @@ class FurhatBridge:
         self.use_trial_memory = use_trial_memory
         # When replaying stored trials, skip thinking behaviors if requested (default true for replay-only)
         self.skip_replay_thinking = replay_only
+        self.disable_multimodal = replay_only  # disable gestures/expressions in replay-only mode
         
         # Connect to Furhat
         self.furhat = AsyncFurhatClient(host, auth_key=auth_key)
         
         # Share the Furhat client with the behavior generator
-        self.behavior_generator = BehaviorGenerator(furhat_client=self.furhat)
+        self.behavior_generator = BehaviorGenerator(
+            furhat_client=self.furhat,
+            disable_multimodal=self.disable_multimodal,
+        )
         
         # Conversation history
         self.dialog_history = []

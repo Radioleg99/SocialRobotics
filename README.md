@@ -20,7 +20,7 @@ This repository runs a two-stage pipeline for the Furhat robot:
 ## Run
 ```bash
 python3 main.py                 # normal: controller + thinking + reasoning
-python3 main.py --replay-only   # use answers from my_trials.json; skip stored thinking cues
+python3 main.py --replay-only   # prefer answers from my_trials.json; if no close match, fall back to models
 python3 main.py --test          # local test without Furhat
 ```
 

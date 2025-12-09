@@ -123,19 +123,12 @@ class Orchestrator:
         cprint(f"User: {self.question}")
 
         cached = self.trial_memory.get(self.question) if self.use_trial_memory else None
-        if self.replay_only:
-            if cached:
-                cprint("Replay-only mode: using stored response")
-                await self._replay_cached_trial(cached, skip_thinking=self.skip_replay_thinking)
-            else:
-                cprint("Replay-only mode: no stored answer found")
-                await self._respond_no_record()
-            return
-
         if cached:
             cprint("Replaying recorded response for repeated question (no new model calls)")
             await self._replay_cached_trial(cached, skip_thinking=self.skip_replay_thinking)
             return
+        if self.replay_only and not cached:
+            cprint("Replay-only mode: no stored answer found, falling back to model")
 
         self.decision = self.controller.decide()
         need_thinking = bool(self.decision.get("need_thinking", False))
